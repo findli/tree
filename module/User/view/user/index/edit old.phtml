@@ -1,0 +1,253 @@
+<script type="text/javascript">
+	$(document).ready(function () {
+		$('img[id="change_avatar"]').click(function () {
+			$('input#fileUpload').trigger('click');
+		});
+		$('input[id="fileUpload"]').change(function () {
+			console.log('123');
+			$("form#test").trigger('submit');
+			console.log('123');
+		});
+
+		window.submitForm = function () {
+			var formData = new FormData($('#test')[0]);
+
+			$.ajax({
+				url: '/user/uploadmanager/processupload',
+				type: 'POST',
+				data: formData,
+				async: false,
+				success: function (data) {
+					var data = JSON.parse(data);
+					console.log(data);
+					if (!data['result']) {
+						alert(data['messages']);
+					} else {
+						console.log(data['avatar']);
+						$("img#change_avatar").attr('src', "data:image/jpg;base64," + data['avatar']);
+					}
+				},
+				cache: false,
+				contentType: false,
+				processData: false
+			});
+
+			return false;
+		}
+
+	});
+</script>
+<?php
+// module/User/view/user/user/add.phtml:
+
+$this->headTitle( $this->translate($this->escapeHtml($title)) );
+?>
+<h1><?php echo $this->translate($this->escapeHtml( $title )); ?></h1>
+<?
+
+$flash = $this->flashMessenger();
+$flash->setMessageOpenFormat( '<div%s>
+     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+         &times;
+     </button>
+     <ul><li>' )
+      ->setMessageSeparatorString( '</li><li>' )
+      ->setMessageCloseString( '</li></ul></div>' );
+
+echo $flash->render( 'error', array( 'alert', 'alert-dismissable', 'alert-danger' ) );
+echo $flash->render( 'info', array( 'alert', 'alert-dismissable', 'alert-info' ) );
+echo $flash->render( 'default', array( 'alert', 'alert-dismissable', 'alert-warning' ) );
+echo $flash->render( 'success', array( 'alert', 'alert-dismissable', 'alert-success' ) );
+?>
+<?
+if ( !empty( $msg ) ):
+	?>
+	<div class="alert alert-dismissable alert-info">
+		<button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+			&times;
+		</button>
+		<ul>
+			<li><?= $msg ?></li>
+		</ul>
+	</div>
+<?
+endif;
+?>
+<pre>
+	<h4><?=$this->translate('click on the following picture to change avatar:')?></h4><a href="#" style="display: inline-block;" class="thumbnail"><img id="change_avatar" src="<?php
+		$avatar_src = (isset($auth[ 'user' ][ 'avatar' ])?$auth[ 'user' ][ 'avatar' ]:NULL);
+		if ( !empty( $avatar_src ) ) {
+			echo 'data:image/jpg;base64,' . $avatar_src;
+		} else {
+			echo "/img/add_milestone.png";
+		}
+		?>" alt="<?=$this->translate('change avatar')?>"
+	                                                                                                  style="width: 200px; height:200px; "/>
+	</a>
+	<input type="hidden" value="Submit" onclick="save();"/>
+
+<form id="test" action="javascript:submitForm();" method="post" enctype="multipart/form-data">
+	<input type="file" id="fileUpload" name="fileUpload" style="display: none"/>
+</form>
+</pre>
+<pre>
+
+<div class="panel panel-success">
+	<div class="panel-heading">
+		<h3 class="panel-title"><?= $this->translate('Edit')?></h3>
+	</div>
+	<div class="panel-body">
+		<?php
+		$formUserEdit->prepare();
+		$formUserEdit->setAttribute( 'class', 'form-horizontal' );
+
+		echo $this->form()
+		          ->openTag( $formUserEdit );
+		echo $this->formHidden( $formUserEdit->get( 'id' ) );
+		?>
+		<div class="form-group">
+			<?php $email = $formUserEdit->get( 'email' );
+			$email->setLabel($this->translate($email->getLabel()));
+			$email->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $email ); ?>
+			<div class="col-lg-10">
+				<?php
+				$email->setAttribute( 'class', 'form-control' );
+				echo $this->formElement( $email );
+				echo $this->formElementErrors( $email );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<?php
+			$name = $formUserEdit->get( 'name' );
+			$name->setLabel($this->translate($name->getLabel()));
+			$name->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $name );
+			?>
+			<div class="col-lg-10">
+				<?php
+				$name->setAttribute( 'class', 'form-control' );
+				echo $this->formInput( $name );
+				echo $this->formElementErrors( $name, [ 'class' => 'red' ] );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<?php
+			$lastName = $formUserEdit->get( 'lastName' );
+			$lastName->setLabel($this->translate($lastName->getLabel()));
+			$lastName->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $lastName );
+			?>
+			<div class="col-lg-10">
+				<?php
+				$lastName->setAttribute( 'class', 'form-control' );
+				echo $this->formInput( $lastName );
+				echo $this->formElementErrors( $lastName, [ 'class' => 'red' ] );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-lg-10 col-lg-offset-2">
+				<?php
+				$submit = $formUserEdit->get( 'submit' );
+				$submit->setAttribute( 'class', 'btn btn-info' );
+				echo $this->formElement( $submit );
+				echo $this->formElementErrors( $submit );
+				?>
+			</div>
+		</div>
+		<?php
+		echo $this->form()
+		          ->closeTag();
+
+		/*
+		 * or just
+		 * $formUserEdit->setAttribute('action', $this->url('user', array('action' => 'add')));
+		 * $formUserEdit->prepare();
+		 *
+		 * echo $this->form()->openTag($form);
+		 * echo $this->formCollection($form);
+		 * echo $this->form()->closeTag();
+		 */
+		?>
+	</div>
+</div>
+</pre>
+<pre>
+	<div class="panel panel-success">
+		<div class="panel-heading">
+			<h3 class="panel-title"><?=$this->translate('Change password')?></h3>
+		</div>
+		<div class="panel-body">
+			<?php
+			$formPassword->prepare();
+			$formPassword->setAttribute( 'class', 'form-horizontal' );
+
+			echo $this->form()
+			          ->openTag( $formPassword );
+			echo $this->formHidden( $formPassword->get( 'id' ) );
+
+			$passwordGroup = $formPassword->get( 'password' );
+			?>
+			<div class="form-group">
+				<?php
+				$password = $passwordGroup->get( 'password' );
+				$password->setLabel($this->translate($password->getLabel()));
+				$password->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+				echo $this->formLabel( $password );
+				?>
+				<div class="col-lg-10">
+					<?php
+					$password->setAttribute( 'class', 'form-control' );
+					echo $this->formInput( $password );
+					echo $this->formElementErrors( $password, [ 'class' => 'red' ] );
+					?>
+				</div>
+			</div>
+			<div class="form-group">
+				<?php
+				$confirm_password = $passwordGroup->get( 'confirm_password' );
+				$confirm_password->setLabel($this->translate($confirm_password->getLabel()));
+				$confirm_password->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+				echo $this->formLabel( $confirm_password );
+				?>
+				<div class="col-lg-10">
+					<?php
+					$confirm_password->setAttribute( 'class', 'form-control' );
+					echo $this->formInput( $confirm_password );
+					echo $this->formElementErrors( $confirm_password, [ 'class' => 'red' ] );
+					?>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-lg-10 col-lg-offset-2">
+					<?php
+					echo $this->formRow( $formPassword->get( 'csrf' ) );
+					$submit = $formPassword->get( 'submit' );
+					$submit->setValue($this->translate($submit->getValue()));
+					$submit->setAttribute( 'class', 'btn btn-info' );
+					echo $this->formElement( $submit );
+					echo $this->formElementErrors( $submit );
+					?>
+				</div>
+			</div>
+
+			<?php
+			echo $this->form()
+			          ->closeTag();
+
+			/*
+			 * or just
+			 * $formPassword->setAttribute('action', $this->url('user', array('action' => 'add')));
+			 * $formPassword->prepare();
+			 *
+			 * echo $this->form()->openTag($form);
+			 * echo $this->formCollection($form);
+			 * echo $this->form()->closeTag();
+			 */
+			?>
+		</div>
+	</div>
+</pre>

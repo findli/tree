@@ -1,4 +1,12 @@
 <?php
+if ($_SERVER['APPLICATION_ENV'] == 'development') {
+    error_reporting(E_ALL);
+    ini_set("display_errors", 1);
+}
+
+error_reporting(E_ALL);
+ini_set('display_errors', true);
+
 /**
  * This makes our life easier when dealing with paths. Everything is relative
  * to the application root now.
@@ -10,8 +18,9 @@ if (php_sapi_name() === 'cli-server' && is_file(__DIR__ . parse_url($_SERVER['RE
     return false;
 }
 
+
 // Setup autoloading
 require 'init_autoloader.php';
-
+require_once('global.php');
 // Run the application!
 Zend\Mvc\Application::init(require 'config/application.config.php')->run();

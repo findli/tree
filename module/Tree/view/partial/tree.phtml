@@ -1,0 +1,440 @@
+<?php echo $this->headTitle( $this->translate( $title ) )
+                ->setSeparator( ' - ' )
+                ->setAutoEscape( FALSE ) ?>
+<div class="row">
+	<div class="header span3">
+		<!--        <h1>CSS Grid</h1>-->
+	</div>
+	<!--    <div class="search span4 offset4"><input class="search-field" type="text" name="" id=""/><input class="search-button" type="submit" value="Поиск"/></div>-->
+</div>
+<div class="row">
+	<!--    <div class="slider span12"></div>-->
+</div>
+<div class="row">
+	<!--    <div class="thumb span2"><img src="/images/140x100.gif"></div>-->
+	<!--    <div class="thumb span2"><img src="/images/140x100.gif"></div>-->
+	<!--    <div class="thumb span2"><img src="/images/140x100.gif"></div>-->
+	<!--    <div class="thumb span2"><img src="/images/140x100.gif"></div>-->
+	<!--    <div class="thumb span2"><img src="/images/140x100.gif"></div>-->
+	<!--    <div class="thumb span2"><img src="/images/140x100.gif"></div>-->
+</div>
+<div class="row">
+	<div class="sidebar span5">
+		<style type="text/css">
+			.node div {
+				position: relative;
+			}
+		</style>
+		<div class="tree"></div>
+	</div>
+	<div class="content span7">
+		<!--        <h2>Lorem ipsum dolor sit amet.</h2>-->
+	</div>
+</div>
+
+<div class="row">
+	<div class="footer span12">
+		<!--        <small>Ipsum quo rem sit voluptatem.</small>-->
+	</div>
+</div>
+</div>
+<!--	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
+<!--	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>-->
+<!--<script type="text/javascript" src="/themes/01012013/vendor/jquery-2.0.3.js"></script>-->
+<!--<script type="text/javascript" src="/themes/01012013/vendor/jquery-ui.js"></script>-->
+<?
+$this->HeadScript()
+     ->appendFile(
+	     $this->basePath() . '/js/my/std/tree/draw.js',
+	     'text/javascript'
+     );
+?>
+<?
+$this->inlineScript()
+     ->captureStart();
+echo <<<'JS'
+	/*
+	 @TODO
+	 1. expand and hide
+	 2. checkbox indicated root node for menu like in ozon.ru
+	 3. on frontside on large resolution menu look like in ozon.ru and on mobile devices look like in sotomore.ru
+	 */
+	$(document).ready(function () {
+
+		var mongoWorker = {};
+		mongoWorker.insertCategory = function (newDocument, parentId) {
+			var post = {
+				'newDocument': newDocument,
+				'parentId': parentId
+			}
+			var postJson = JSON.stringify(post);
+			var refContext = this;
+			$.ajax({
+					url: '/tree/ajax/insert_category',
+					data: {
+						'postJson': postJson
+					},
+					'type': 'post',
+					dataType: 'json',
+					cache: false,
+					statusCode: {
+						404: function () {
+							alert('server error! try again later or write admin!');
+						}
+					},
+					success: function (data) {
+						console.log('%cnewDocument: ', 'color:red;');
+						console.log(newDocument);
+						newDocument._id = {$id: data._id};
+						var hasChilds = $("li[mongoid='" + parentId + "'] > ul");
+						console.log("parentId: ");
+						console.log(parentId);
+						console.log("hasChilds: ");
+						console.log(hasChilds);
+						if (hasChilds.length) {
+							var lastLI = $("li[mongoid='" + parentId + "'] > ul > li:last");
+							console.log('lastLI:');
+							console.log(lastLI);
+							console.log($(lastLI).attr('class'));
+							var BCarray_tmp1 = nestedTree.getArrayFromBreadcrumbs($(lastLI).attr('class'));
+							console.log(BCarray_tmp1);
+							var BCarray_tmp1_last_key_tmp1 = BCarray_tmp1[BCarray_tmp1.length - 1];
+							console.log(BCarray_tmp1_last_key_tmp1);
+							BCarray_tmp1 = removeKey(BCarray_tmp1, BCarray_tmp1.length - 1);
+							console.log('BCarray_tmp1: ', BCarray_tmp1);
+							BCarray_tmp1.push(parseInt(BCarray_tmp1_last_key_tmp1) + 1);
+							console.log('BCarray_tmp1: ', BCarray_tmp1);
+							var newRowClass = nestedTree.getBreadcrumbsFromArray(BCarray_tmp1);
+							BCarray_tmp1 = undefined;
+							BCarray_tmp1_last_key_tmp1 = undefined;
+							console.log('if hasChilds: ', true);
+							console.log('newRowClass: ', newRowClass);
+							var newLI = nestedTree.getLi(newRowClass, newDocument);
+							$("ul#" + $(hasChilds[0]).attr('id')).append(newLI);
+							console.log(lastLI);
+						} else {
+							console.log('if hasChilds: ', false);
+							var parentLi = $("li[mongoid='" + parentId + "']");
+							console.log('parentLi:');
+							console.log(parentLi);
+							var BCarr_tmp1 = nestedTree.getArrayFromBreadcrumbs($(parentLi).attr('class'));
+							console.log('BCarr_tmp1:');
+							console.log(BCarr_tmp1);
+							BCarr_tmp1.push("1");
+							console.log('BCarr_tmp1:');
+							console.log(BCarr_tmp1);
+							var newRowClass = nestedTree.getBreadcrumbsFromArray(BCarr_tmp1);
+							console.log('newRowClass:');
+							console.log(newRowClass);
+							BCarr_tmp1 = undefined;
+							var newLI = nestedTree.getLi(newRowClass, newDocument);
+							console.log('newLI:');
+							console.log(newLI);
+							var append = $(document.createElement('ul')).attr('id', newDocument._id.$id).append(newLI);
+							console.log('append:');
+							console.log(append);
+							var lastLI = $(parentLi).append(append);
+							console.log(lastLI);
+						}
+					}
+				}
+			).done(
+				/*function (data) {
+				 console.group('ajax after 1');
+				 console.log(data);
+				 ret = data._id.$id;
+
+				 *//***************//*
+				 var newId = data._id.$id;
+				 console.log('newId:');
+				 console.log(newId);
+				 newDocument['_id'] = newId;
+
+				 var newRowClass = 'class';
+				 nestedTree.getLi(newRowClass, newDocument);
+				 var currentNodeLevel = currentNodeClass.split('node');
+				 //					console.log('parsed: ');
+				 //					console.log(currentNodeLevel);
+				 var size = $(this).parent().children('div[class*=node]').size();
+				 console.log('children node size: ' + size);
+
+				 var new_node = '<div class="node' + currentNodeLevel[1] + '-' + (size + 1) + '">' + new_category + ' - ' + currentNodeLevel[1] + '-' + (size + 1) + '<input type="button" value="add" target="add"/><input type="button" value="delete" target="delete"/>';
+				 console.log('new node: ', new_node);
+				 $(this).parent().append(new_node);
+				 var level = 1;
+				 var root_node = document.getElementsByClassName('node');
+				 create_array(root_node, level, false);
+
+				 console.group('for ajax: ');
+
+
+				 //                    var parentId = currentNodeLevel[1];
+				 //                    mongoWorker.insertCategory(newDocument, parentId);
+
+				 *//***************//*
+
+				 console.group('ajax after 2');
+
+				 console.groupEnd();
+
+
+				 console.groupEnd();
+				 console.groupEnd();
+
+				 return ret;
+				 }*/
+			);
+		};
+		mongoWorker.updateCategory = function (newCategory, id) {
+			var slug = newCategory.slug;
+			var name = newCategory.name;
+			var description = newCategory.description;
+			var postAjax = {
+						'slug': slug,
+						'name': name,
+						'description': description,
+						'id': id
+						};
+			$.ajax({
+					url: '/tree/ajax/update_category',
+					type: 'post',
+					data: {
+					'postAjax': JSON.stringify(postAjax)
+					},
+					dataType: 'json',
+					cache: false,
+					statusCode: {
+						404: function () {
+							alert('server error! try again later or write admin!');
+						}
+					}
+				}
+			).done(function (data) {
+					console.group('ajax after 1');
+					console.log(data);
+					console.group('ajax after 2');
+				});
+		};
+		mongoWorker.removeCategory = function (categoryId) {
+			console.log('mongoWorker.removeCategory');
+			console.log('categoryId:');
+			console.log(categoryId);
+			var postAjax = {
+				'document': {
+					'_id': categoryId
+				}
+			};
+			postAjax = JSON.stringify(postAjax);
+			$.ajax({
+					type: 'post',
+					url: '/tree/ajax/remove_category',
+					cache: false,
+					dataType: 'json',
+					data: {
+						'postAjax': postAjax
+					},
+					statusCode: {
+						201: function () {
+							console.log('code 201');
+						},
+						200: function () {
+							console.log('code 200');
+						},
+						404: function () {
+							alert('server error! try later or write to admin!');
+						}
+					}
+				}
+			).done(function (data) {
+					console.group('ajax after 1');
+					console.log(data);
+					console.group('ajax after 2');
+				});
+		};
+
+
+		$('div.tree').on('click', 'input[target=edit]', function () {
+			console.group('click edit node to currentNodeClass:');
+			// next line del 2014-09-15
+//            var ul = $(this).parents('ul');
+			// next line del 2014-09-15
+//            var parentId = $(ul).attr('id');
+			var li = $(this).parent('li');
+			var Id = $(li).attr('mongoid');
+			console.log('Id');
+			console.log(Id);
+			var new_category_name = prompt('Enter new category name: ',$(this).prevAll('input[name="name"]').attr('value'));
+			var new_category_slug = prompt('Enter new category slug: ', $(this).prevAll('input[name="slug"]').attr('value'));
+			var new_category_descritpion = prompt('Enter new category description: ', $(this).prevAll('input[name="description"]').attr('value'));
+			$(li).children('span.thetext').text(new_category_name + '; ' + $(li).attr('class'));
+			var newDocument = {};
+			newDocument['slug'] = new_category_slug;
+			newDocument['name'] = new_category_name;
+			newDocument['description'] = new_category_descritpion;
+
+			var newId = mongoWorker.updateCategory(newDocument, Id);
+			// todo после ajax call addLiFunc
+
+//			return;
+
+
+		});
+		$('div.tree').on('click', 'input[target=add]', function () {
+			console.group('click add node to currentNodeClass:');
+			// next line del 2014-09-15
+//            var ul = $(this).parents('ul');
+			// next line del 2014-09-15
+//            var parentId = $(ul).attr('id');
+			var li = $(this).parent('li');
+			console.log('li:');
+			console.log(li);
+			var parentId = $(li).attr('mongoid');
+			console.log('parentId');
+			console.log(parentId);
+			var new_category_name = prompt('Enter new category name: ');
+			var new_category_slug = prompt('Enter new category slug: ');
+			var new_category_descritpion = prompt('Enter new category description: ');
+
+			var newDocument = {};
+			newDocument['slug'] = new_category_slug;
+			newDocument['name'] = new_category_name;
+			newDocument['description'] = new_category_descritpion;
+
+			var newId = mongoWorker.insertCategory(newDocument, parentId);
+			// todo после ajax call addLiFunc
+
+//			return;
+
+		});
+		$(document).on('click', 'input[target=delete]', function () {
+			var parentParentNodeClass = $(this).parent().parent().attr('class');
+			var currentNodeClass = $(this).parent().attr('class');
+			console.group('click delete node to ' + currentNodeClass);
+			$(this).parent().remove();
+			console.log('parentParentNode children size:', $('.node div[class=' + parentParentNodeClass + '] > div').size());
+			console.group('each children');
+			mongoWorker.removeCategory($(this).parent().attr('mongoid'));
+			var i = 0;
+			$('.node div[class=' + parentParentNodeClass + '] > div[class*=node]').each(function () {
+				var currentNodeClass = $(this).attr('class');
+				console.log('currentNodeClass: ');
+				console.log(currentNodeClass);
+				console.log(currentNodeClass.length);
+				var mongoId = $(this).attr('mongoid');
+				console.log('mongoid: ');
+				console.log(mongoid);
+				var new_class_prototype = currentNodeClass.substring(0, [currentNodeClass.length - 1]);
+				console.log(new_class_prototype);
+				var new_class = new_class_prototype + ++i;
+				if (currentNodeClass != new_class)
+					$('.node div[class=' + currentNodeClass + ']').addClass(new_class).removeClass(currentNodeClass);
+			});
+			console.groupEnd();
+		});
+
+		// example tree:
+		var testTree = [
+			{
+				'_id': '1',
+				'slug': 'home',
+				'name': 'home',
+				'description': 'description home',
+				'child': [
+					{
+						'_id': '2',
+						'slug': 'outdoors',
+						'name': 'Outdoors',
+						'description': 'description Outdoors',
+						'child': [
+							{
+								'_id': '3',
+								'slug': 'tools',
+								'name': 'Tools',
+								'description': 'description Tools',
+								'child': []
+							},
+							{
+								'_id': '4',
+								'slug': 'seedlings',
+								'name': 'Seedlings',
+								'description': 'description Seedlings',
+								'child': []
+							},
+							{
+								'_id': '5',
+								'slug': 'planters',
+								'name': 'Planters',
+								'description': 'description Planters',
+								'child': []
+							},
+							{
+								'_id': '6',
+								'slug': 'lawn-care',
+								'name': 'Lawn care',
+								'description': 'description "Lawn care"',
+								'child': []
+							}
+						]
+					},
+					{
+						'_id': '7',
+						'slug': 'lvl2-1-2',
+						'name': 'indoors lvl2 1-2',
+						'description': 'description lvl2 1-2',
+						'child': []
+					},
+					{
+						'_id': '8',
+						'slug': 'lvl2-1-3',
+						'name': 'road',
+						'description': 'description lvl2 1-3',
+						'child': [
+							{
+								'_id': '9',
+								'slug': 'tools',
+								'name': 'Tools',
+								'description': 'description Tools',
+								'child': []
+							},
+							{
+								'_id': '10',
+								'slug': 'seedlings',
+								'name': 'Seedlings',
+								'description': 'description Seedlings',
+								'child': []
+							},
+							{
+								'_id': '11',
+								'slug': 'planters',
+								'name': 'Planters',
+								'description': 'description Planters',
+								'child': []
+							},
+							{
+								'_id': '12',
+								'slug': 'lawn-care',
+								'name': 'Lawn care',
+								'description': 'description "Lawn care"',
+								'child': []
+							}
+						]
+					}
+				]
+			}
+		];
+//        nestedTree.drawTree(testTree, [1], 'tree');
+
+		$.ajax({
+			'cache': false,
+			'url': '/tree/ajax/get_tree',
+			'success': function (data) {
+				var treeJSON = $.parseJSON(data);
+				nestedTree.drawTree(treeJSON, [1], 'tree');
+			}
+		})
+
+	});
+JS;
+$this->inlineScript()
+     ->captureEnd();
+?>

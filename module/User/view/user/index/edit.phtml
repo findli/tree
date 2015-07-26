@@ -1,0 +1,305 @@
+<script type="text/javascript">
+	$(document).ready(function () {
+
+		var uploader = new plupload.Uploader({
+			runtimes: 'gears,html5,flash,silverlight,browserplus,html4',
+			browse_button: 'pickfiles',
+			container: 'container',
+			max_file_size: '10mb',
+			<!--            max_file_count not work -->
+			max_file_count: 1,
+			multi_selection: false,
+			'rename': true,
+			url: '<?=$this->url('user', ['controller' => 'uploadmanager', 'action' => 'processupload'])?>',
+			resize: {width: 800, height: 800, quality: 90},
+			flash_swf_url: '/js/plupload/plupload.flash.swf',
+			silverlight_xap_url: '/js/plupload/plupload.silverlight.xap',
+			filters: [
+				{title: "Image files", extensions: "jpg,jpeg,gif,png",
+					max_file_size:'10mb'}
+			]
+		});
+
+		uploader.init();
+		uploader.bind('FileUploaded', function (up, file, data) {
+			var obj = jQuery.parseJSON(data.response);
+			console.log('obj.thumb: ', obj.avatar);
+
+//			$(document.getElementById(file.id).getElementsByTagName('b')[0]).parent('div').prepend('<img class="img-thumbnail" width="100" src="'+obj.thumb+'">&nbsp;&nbsp;&nbsp;<a id="delete_image" class="btn btn-default" style="cursor:pointer; color:black;" image="'+obj.thumb+'" >delete</a><br>');
+			$("img#pickfiles").attr("src", 'data:image/jpg;base64,' + obj.avatar);
+
+		});
+		var prev_left = 0;
+		uploader.bind('FilesAdded', function (up, files) {
+
+			if (up.files.length >= 10) {
+				var remained_downloads = 10 - prev_left;
+				$("#max-count-exceed").text('<?=$this->translate('Max file limit exceeded! Your can upload more: ')?>' + remained_downloads);
+				$("#max-count-exceed").css('display', 'block');
+				while (up.files.length > prev_left) {
+					var length2 = up.files.length - 1;
+					uploader.removeFile(up.files[length2]);
+				}
+				return false;
+			} else {
+				prev_left = uploader.files.length;
+				$("#max-count-exceed").css('display', 'none');
+			}
+			for (var i in files) {
+//				document.getElementById('filelist').innerHTML += '<div id="' + files[i].id + '">' + files[i].name + '(' + plupload.formatSize(files[i].size) + ') <b></b> </div>';
+			}
+
+			uploader.start();
+		});
+		uploader.bind('FilesAdded', function (up, file) {
+			$('#plupload-message').css('display', 'none');
+			$(".upload-progress").css('display', 'block');
+			$('#progress-percent').text(0 + "%");
+			$("#progress-percent").css('width', 0 + '%');
+			$("#progress-percent").attr('aria-valuenow', 0);
+		});
+		uploader.bind('FileUploaded', function (up, file) {
+			$('#plupload-message').css('display', 'block');
+			$('#plupload-message').text('File uploaded!');
+			$("#upload-progress").css('display', 'none');
+		});
+		uploader.bind('UploadProgress', function (up, file) {
+			$('#plupload-message').css('display', 'none');
+			$('#progress-percent').text(file.percent + "%");
+			$("#progress-percent").css('width', file.percent + '%');
+			$("#progress-percent").attr('aria-valuenow', file.percent);
+		});
+		uploader.bind('Error', function (up, err) {
+			$('#plupload-message').css('display', 'block');
+
+			$('#progress-percent').text(0 + "%");
+			$("#progress-percent").css('width', 0 + '%');
+			$("#progress-percent").attr('aria-valuenow', 0);
+
+			$('#plupload-message').text("\nError : " + err.message);
+		});
+	})
+</script>
+<?php
+// module/User/view/user/user/add.phtml:
+
+$this->headTitle( $title );
+?>
+<h1><?php echo $this->escapeHtml( $title ); ?></h1>
+<?
+
+$flash = $this->flashMessenger();
+$flash->setMessageOpenFormat( '<div%s>
+     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+         &times;
+     </button>
+     <ul><li>' )
+      ->setMessageSeparatorString( '</li><li>' )
+      ->setMessageCloseString( '</li></ul></div>' );
+
+echo $flash->renderCurrent( 'error', array( 'alert', 'alert-dismissable', 'alert-danger' ) );
+echo $flash->renderCurrent( 'info', array( 'alert', 'alert-dismissable', 'alert-info' ) );
+echo $flash->renderCurrent( 'default', array( 'alert', 'alert-dismissable', 'alert-warning' ) );
+echo $flash->renderCurrent( 'success', array( 'alert', 'alert-dismissable', 'alert-success' ) );
+?>
+<?
+if ( !empty( $msg ) ):
+	?>
+	<div class="alert alert-dismissable alert-info">
+		<button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+			&times;
+		</button>
+		<ul>
+			<li><?= $msg ?></li>
+		</ul>
+	</div>
+<?
+endif;
+?>
+<pre>
+	<div id="container">
+		<div><div class="alert alert-warning" role="alert" id="plupload-message" style="display: none; height: inherit;"></div></div>
+		<br/>
+		<?=$this->translate('click to change avatar:')?>
+		<?
+		$avatar_src = $auth[ 'user' ]->getAvatar();
+//d(get_class($avatar_src));
+//		d($auth['user']);
+//		d($auth['user']->avatar);
+//		d($auth['user']->getAvatar());
+//		dd($avatar_src);
+		?>
+		<img id="pickfiles" src='<?php
+		if ( !empty( $avatar_src ) ) {
+			echo 'data:image/jpg;base64,' . $avatar_src;
+//			echo '/upload/' . $avatar_src;
+		} else {
+			echo "/img/add_milestone.png";
+		}
+
+		?>' alt="change avatar"
+		     style="width: 200px; height:200px; cursor: pointer;"/>
+	</div>
+	<br/>
+		<div><div class="upload-progress" style="display: none; height: inherit;">
+				<div id="progress-percent" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%; height: inherit">
+					0%
+				</div>
+			</div></div>
+</pre>
+<pre>
+
+<div class="panel panel-primary">
+	<div class="panel-heading">
+		<h3 class="panel-title"><?=$this->translate('Edit user')?></h3>
+	</div>
+	<div class="panel-body">
+		<?php
+		$formUserEdit->prepare();
+		$formUserEdit->setAttribute( 'class', 'form-horizontal' );
+
+		echo $this->form()
+		          ->openTag( $formUserEdit );
+		echo $this->formHidden( $formUserEdit->get( 'id' ) );
+		?>
+		<div class="form-group">
+			<?php $email = $formUserEdit->get( 'email' );
+			$email->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $email ); ?>
+			<div class="col-lg-10">
+				<?php
+				$email->setAttribute( 'class', 'form-control' );
+				echo $this->formElement( $email );
+				echo $this->formElementErrors( $email );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<?php
+			$name = $formUserEdit->get( 'name' );
+			$name->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $name );
+			?>
+			<div class="col-lg-10">
+				<?php
+				$name->setAttribute( 'class', 'form-control' );
+				echo $this->formInput( $name );
+				echo $this->formElementErrors( $name, [ 'class' => 'red' ] );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<?php
+			$last_name = $formUserEdit->get( 'lastName' );
+			$last_name->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $last_name );
+			?>
+			<div class="col-lg-10">
+				<?php
+				$last_name->setAttribute( 'class', 'form-control' );
+				echo $this->formInput( $last_name );
+				echo $this->formElementErrors( $last_name, [ 'class' => 'red' ] );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-lg-10 col-lg-offset-2">
+				<?php
+				$submit = $formUserEdit->get( 'submit' );
+				$submit->setAttribute( 'class', 'btn btn-primary' );
+				echo $this->formElement( $submit );
+				echo $this->formElementErrors( $submit );
+				?>
+			</div>
+		</div>
+		<?php
+		echo $this->form()
+		          ->closeTag();
+
+		/*
+		 * or just
+		 * $form->setAttribute('action', $this->url('user', array('action' => 'add')));
+		 * $form->prepare();
+		 *
+		 * echo $this->form()->openTag($form);
+		 * echo $this->formCollection($form);
+		 * echo $this->form()->closeTag();
+		 */
+		?>
+	</div>
+</div>
+</pre>
+<pre>
+	<div class="panel panel-primary">
+		<div class="panel-heading">
+			<h3 class="panel-title"><?=$this->translate('Change password')?></h3>
+		</div>
+		<div class="panel-body">
+			<?php
+			$formPassword->prepare();
+			$formPassword->setAttribute( 'class', 'form-horizontal' );
+
+			echo $this->form()
+			          ->openTag( $formPassword );
+			echo $this->formHidden( $formPassword->get( 'id' ) );
+			$passwordGroup = $formPassword->get( 'password' );
+			?>
+			<div class="form-group">
+				<?php
+				$password = $passwordGroup->get( 'password' );
+				$password->setLabel($this->translate('New password'));
+				$password->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+				echo $this->formLabel( $password );
+				?>
+				<div class="col-lg-10">
+					<?php
+					$password->setAttribute( 'class', 'form-control' );
+					echo $this->formInput( $password );
+					echo $this->formElementErrors( $password, [ 'class' => 'red' ] );
+					?>
+				</div>
+			</div>
+			<div class="form-group">
+				<?php
+				$confirm_password = $passwordGroup->get( 'confirm_password' );
+				$confirm_password->setLabel($this->translate('Repeat new password'));
+				$confirm_password->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+				echo $this->formLabel( $confirm_password );
+				?>
+				<div class="col-lg-10">
+					<?php
+					$confirm_password->setAttribute( 'class', 'form-control' );
+					echo $this->formInput( $confirm_password );
+					echo $this->formElementErrors( $confirm_password, [ 'class' => 'red' ] );
+					?>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-lg-10 col-lg-offset-2">
+					<?php
+					echo $this->formRow( $formPassword->get( 'csrf' ) );
+					$submit = $formPassword->get( 'submit' );
+					$submit->setAttribute( 'class', 'btn btn-primary' );
+					echo $this->formElement( $submit );
+					echo $this->formElementErrors( $submit );
+					?>
+				</div>
+			</div>
+
+			<?php
+			echo $this->form()
+			          ->closeTag();
+
+			/*
+			 * or just
+			 * $formPassword->setAttribute('action', $this->url('user', array('action' => 'add')));
+			 * $formPassword->prepare();
+			 *
+			 * echo $this->form()->openTag($form);
+			 * echo $this->formCollection($form);
+			 * echo $this->form()->closeTag();
+			 */
+			?>
+		</div>
+	</div>
+</pre>

@@ -1,0 +1,54 @@
+<div class="panel panel-success">
+	<div class="panel-heading">
+		<h3 class="panel-title">User Login</h3>
+	</div>
+	<div class="panel-body">
+		<?php
+		$loginForm->prepare();
+		$loginForm->setAttribute( 'method', 'post' );
+		$loginForm->setAttribute( 'class', 'form-horizontal' );
+		echo $this->form()
+		          ->openTag( $loginForm );
+		?>
+		<?php if ( $this->error ): ?>
+			<pre class="red">
+		<?php echo $this->error; ?>
+	</pre>
+		<?php endif ?>
+		<div class="form-group">
+			<?php $email = $loginForm->get( 'email' );
+			$email->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $email ); ?>
+			<div class="col-lg-10">
+				<?php
+				$email->setAttribute( 'class', 'form-control' );
+				echo $this->formElement( $email );
+				echo $this->formElementErrors( $email, [ 'class' => 'red' ] );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<?php $password = $loginForm->get( 'password' );
+			$password->setLabelAttributes( [ 'class' => 'col-lg-2 control-label' ] );
+			echo $this->formLabel( $password ); ?>
+			<div class="col-lg-10">
+				<?php
+				$password->setAttribute( 'class', 'form-control' );
+				echo $this->formElement( $password );
+				echo $this->formElementErrors( $password, [ 'class' => 'red' ] );
+				?>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-lg-10 col-lg-offset-2">
+				<?php
+				$submit = $loginForm->get( 'submit' );
+				$submit->setAttribute( 'class', 'btn btn-info' );
+				echo $this->formElement( $submit );
+				echo $this->formElementErrors( $submit );
+				?>
+			</div>
+		</div>
+		</form>
+	</div>
+</div>

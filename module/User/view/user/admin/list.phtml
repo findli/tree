@@ -1,0 +1,42 @@
+list of users:
+<hr/>
+<div class="row">
+	<div class="col-md-12">
+		<div class="row">
+			<div class="col-md-3">Email</div>
+			<div class="col-md-3">Full name</div>
+			<div class="col-md-3">CRUD</div>
+		</div>
+		<?
+		foreach ( $users as $user ):
+			?>
+			<div class="row">
+				<div class="col-md-3">
+					<?
+					echo $user->getEmail();
+					?>
+				</div>
+				<div class="col-md-3">
+					<?
+					echo $user->getName() . ' ' . $user->getLastName()
+					?>
+				</div>
+				<div class="col-md-3">
+					<a href="/user/admin/edit/id/<?= $user->getId() ?>">edit</a>
+					<a href="/user/admin/delete/id/<?= $user->getId() ?>" id="delete-user">delete</a>
+				</div>
+			</div>
+		<?
+		endforeach;
+		?>
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function () {
+		$("#delete-user").on("click", function (event) {
+			if (!confirm('Really delete?')) {
+				event.preventDefault();
+			}
+		});
+	});
+</script>

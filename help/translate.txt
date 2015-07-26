@@ -1,0 +1,10 @@
+<?php
+echo "<br /><h1>DEBUG</h1><br />";
+echo "Translator-Textdomain: " . $this->formLabel()->getTranslatorTextDomain() . "<br />";
+echo "Translator-Locale: " . $this->formLabel()->getTranslator()->getLocale() . "<br />";
+echo "Translator->FallbackLocale: " . $this->formLabel()->getTranslator()->getFallbackLocale() . "<br />";
+echo '<br>';
+echo "Translate-Test: Edit -> ". $this->translate('Edit');
+echo '<br>';
+echo "Translate-Test: Home -> ". $this->translate('Home');
+?>

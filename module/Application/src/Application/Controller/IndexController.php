@@ -9,13 +9,101 @@
 
 namespace Application\Controller;
 
-use Zend\Mvc\Controller\AbstractActionController;
+use Std\My\DefaultController;
 use Zend\View\Model\ViewModel;
 
-class IndexController extends AbstractActionController
+class IndexController extends DefaultController
 {
-    public function indexAction()
-    {
-        return new ViewModel();
-    }
+	public function indexAction()
+	{
+		return $this->redirect()->toRoute('user');
+		dd(__FILE__);
+//dd(__FILE__);
+		$dm = $this->getServiceLocator()
+		           ->get( 'doctrine.documentmanager.odm_default' );
+
+
+		/*$ancestor1 = new Ancestor();
+		$ancestor1->setName( 'ancestor 1' );
+		$ancestor1->setSlug( 'ancestor 1 slug' );
+
+		$ancestor1->setId2( 4 );
+		$ancestor2 = new Ancestor();
+		$ancestor2->setName( 'ancestor 2' );
+		$ancestor2->setSlug( 'ancestor 2 slug' );
+
+		$ancestor2->setId2( 4 );
+		$category = new Category();
+		$category->setSlug( 'slug1' );
+		$category->setParentId( 1 );
+		$category->setName( 'cat 1' );
+		$category->setDescription( 'desc 1' );
+		$category->addAncestor( $ancestor1 );
+		$category->addAncestor( $ancestor2 );
+
+		$dm->persist( $ancestor1 );
+		$dm->persist( $ancestor2 );
+		$dm->persist( $category );
+		$dm->flush();*/
+
+		echo '<pre>';
+		var_dump( get_class( $dm ) );
+		var_dump( get_class_methods( $dm ) );
+		echo '</pre>';
+
+		return new ViewModel();
+	}
+
+	function treeAction()
+	{
+		$mainView   = ( new ViewModel(
+			[
+				'title' => 'tree',
+			]
+		) )->setTerminal( 0 );
+		$treeWidget = $this->forward()
+		                   ->dispatch( 'Tree\Controller\Index', [ 'action' => 'tree'] );
+		$mainView->addChild( $treeWidget, 'tree' );
+
+		return $mainView;
+	}
+
+	function phpinfoAction()
+	{
+		echo phpinfo();
+
+		return $this->getResponse();
+	}
+
+	function getAction()
+	{
+		d( $this->getServiceLocator()
+		        ->get( 'Application' )
+		        ->getServiceManager()
+		        ->getRegisteredServices() );
+
+		return $this->getResponse();
+	}
+
+	function getCHAction()
+	{
+
+		d( get_class( $this->getPluginManager() ) );
+		d( $this->getPluginManager()
+		        ->getRegisteredServices() );
+		d( get_class( $this->getPluginManager()
+		                   ->get( 'identity' ) ) );
+		d( get_class_methods( $this->getPluginManager()
+		                           ->get( 'identity' ) ) );
+		d( get_class( $this->getPluginManager()
+		                   ->get( 'acceptableviewmodelselector' ) ) );
+		d( get_class_methods( $this->getPluginManager()
+		                           ->get( 'acceptableviewmodelselector' ) ) );
+		d( get_class( $this->getPluginManager()
+		                   ->get( 'Head' ) ) );
+		d( get_class_methods( $this->getPluginManager()
+		                           ->get( 'Head' ) ) );
+
+		return $this->getResponse();
+	}
 }

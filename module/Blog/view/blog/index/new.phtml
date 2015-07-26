@@ -1,0 +1,13 @@
+<?
+$this->headTitle( $title );
+
+$form->prepare();
+$this->form()
+     ->openTag( $form );
+echo $this->formRow( $form->get( 'title' ) );
+echo '<br>';
+echo $this->formRow( $form->get( 'text' ) );
+echo '<br>';
+echo $this->formElement( $form->get( 'submit' ) );
+echo $this->form()
+          ->closeTag( $form );
